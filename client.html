@@ -6,18 +6,30 @@
 	<script src="/socket.io/socket.io.js"></script>
 	<script type="text/javascript">
 		$(function(){
+			var incoin = 0;
+			var outcoin = 0;
 			var socket = io.connect()
 			$('#send').on('click',function(e){
 				socket.emit("client_to_server","iPhoneからのPUSH")
 			})
 			socket.on("server_to_client",function(data){
-				var info = $("#info").append(data);
+				if(data.PIN == 0){
+					incoin++;
+				}
+				if(data.PIN == 1){
+					outcoin++;
+				}
+				var coin = outcoin - incoin;
+				var info = $("#info")
+				info.html("差枚数："+coin+"<br>");
+				info.append("IN枚数："+incoin+"<br>");
+				info.append("OUT枚数："+outcoin+"<br>");
+				info.append("機械割："+(outcoin/incoin)+"%"+"<br>")
 			})
 		})
 	</script>
 </head>
 <body>
-	<input type="button" id="send" value="send">
 	<div id="info"></div>
 </body>
 </html>
