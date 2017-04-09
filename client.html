@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>スロットカウンター</title>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+	<script src="/socket.io/socket.io.js"></script>
+	<script type="text/javascript">
+		$(function(){
+			var socket = io.connect()
+			$('#send').on('click',function(e){
+				socket.emit("client_to_server","iPhoneからのPUSH")
+			})
+			socket.on("server_to_client",function(data){
+				var info = $("#info").append(data);
+			})
+		})
+	</script>
+</head>
+<body>
+	<input type="button" id="send" value="send">
+	<div id="info"></div>
+</body>
+</html>
