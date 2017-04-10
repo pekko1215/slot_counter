@@ -5,13 +5,20 @@
     <meta charset="utf-8">
     <link href="css/style.css" rel="stylesheet" type="text/css" />
     <title>データ読み込み</title>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script type="text/javascript" src="js/loader.js"></script>
 </head>
 
 <body>
     <div class="main">
         <div class="selector">
             <h2>データファイル(*.digi)を選択してください。</h2>
-            <p>ブロックレベル要素</p>
+            <label for="file_select">
+            +ファイルを選択
+            <input type="file" id="file_select" style="display: none;">
+            </label>
+            <div id="result">
+            </div>
         </div>
     </div>
 </body>

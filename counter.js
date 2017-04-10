@@ -8,34 +8,104 @@ var jsyaml = require('js-yaml');
 
 var socketio = require('socket.io');
 
+var qs = require('querystring');
 
 var config = jsyaml.load(fs.readFileSync('./config/default.yaml')).config;
+var dataload = false;
+
+
 
 clientserver.on('request', function(req, res) {
-    switch (req.url) {
-        case '/':
-            fs.readFile("./fileselect.html", "utf-8", function(err, data) {
-                res.writeHead(200, { 'content-Type': 'text/html; charset=UTF-8' });
-                res.write(data);
-                res.end();
-            })
-            break;
-        case "/css/style.css":
-            fs.readFile("." + req.url, "utf-8", function(err, data) {
-                res.writeHead(200, { 'Content-Type': 'text/css' });
-                res.write(data);
-                res.end();
-            })
-            break
-        default:
-            fs.readFile("." + req.url, "binary", function(err, data) {
-                if (!err) {
-                    res.writeHead(200, { 'Content-Type': 'image/png' });
-                    res.write(data, 'binary');
+
+    if (req.method == "GET") {
+        if (req.url == "/") {
+            if (dataload == false) {
+                fs.readFile("./startmenu.html", "utf-8", function(err, data) {
+                    res.writeHead(200, {
+                        'content-Type': 'text/html; charset=UTF-8'
+                    });
+                    res.write(data);
                     res.end();
-                }
-            })
-            break
+                })
+            } else {
+                fs.readFile("." + req.url + "counter/client.html", "utf-8", function(err, data) {
+                    res.writeHead(200, {
+                        'content-Type': 'text/html; charset=UTF-8'
+                    });
+                    res.write(data);
+                    res.end();
+                })
+            }
+        } else {
+            if (dataload)
+                req.url = "/counter" + req.url
+            var f = req.url.split('.');
+            console.log(f[f.length - 1])
+            switch (f[f.length - 1]) {
+                case 'htm':
+                    req.url += "l"
+                case 'html':
+                    fs.readFile("." + req.url, "utf-8", function(err, data) {
+                        res.writeHead(200, {
+                            'content-Type': 'text/html; charset=UTF-8'
+                        });
+                        res.write(data);
+                        res.end();
+                    })
+                    break;
+                case "css":
+                    fs.readFile("." + req.url, "utf-8", function(err, data) {
+                        res.writeHead(200, {
+                            'Content-Type': 'text/css'
+                        });
+                        res.write(data);
+                        res.end();
+                    })
+                    break
+                case "js":
+                    fs.readFile("." + req.url, "utf-8", function(err, data) {
+                        res.writeHead(200, {
+                            'Content-Type': 'text/javascript'
+                        });
+                        res.write(data);
+                        res.end();
+                    })
+                    break
+                case "jpg":
+                    fs.readFile("." + req.url, "binary", function(err, data) {
+                        res.writeHead(200, {
+                            'Content-Type': 'image/jpeg'
+                        });
+                        res.write(data, "binary");
+                        res.end();
+                    })
+                    break
+                case "gif":
+						console.log(req.url)
+                    fs.readFile("." + req.url, 'binary', function(err, data) {
+                        res.writeHead(200, {
+                            'Content-Type': 'image/gif'
+                        });
+                        res.write(data, 'binary')
+                        res.end();
+                    })
+            }
+        }
+    }
+    if (req.method == "POST") {
+        var body = '';
+        req.on('data', function(data) {
+            body += data;
+        });
+        req.on('end', function() {
+            var POST = qs.parse(body);
+            dataload = true;
+            res.writeHead(200, {
+                'Content-Type': 'text/plain'
+            });
+            res.write('OK');
+            res.end();
+        });
     }
 });
 
@@ -73,11 +143,17 @@ serialPort.list(function(e, p) {
         } else {
             console.log("open")
             sp.on("data", function(data) {
+                if (!dataload) {
+                    return
+                }
                 var pin = 0xff ^ data[0]
                     //PIN1 PIN2 はONになった時だけ信号を送信
                 for (var i = 0; i < 2; i++) {
                     if (pin & 1 << i && oldPin[i] == 0) {
-                        sendMessage({ 'PIN': i, 'value': true })
+                        sendMessage({
+                            'PIN': i,
+                            'value': true
+                        })
                         oldPin[i] = 1;
                     }
                     if ((pin & 1 << i) == 0x00) {
@@ -88,7 +164,10 @@ serialPort.list(function(e, p) {
                 for (var i = 2; i < 8; i++) {
                     if ((pin & 1 << i) != (oldPin[i] << i)) {
                         oldPin[i] = (pin & 1 << i) >> i;
-                        sendMessage({ 'PIN': i, 'value': oldPin[i] })
+                        sendMessage({
+                            'PIN': i,
+                            'value': oldPin[i]
+                        })
                     }
                 }
             })
@@ -98,12 +177,12 @@ serialPort.list(function(e, p) {
 
 /*
 	カウンターに必要なもの(カウントすべき情報)
-	IN枚数 O
-	OUT枚数 O
-	総回転数 △
-	ボーナス間 △
-	BIG,REGなどのカウンタ △
-	ボーナス履歴 △
+	IN枚数 O incoin
+	OUT枚数 O outcoin
+	総回転数 △ allplay_cnt
+	ボーナス間 △ play_cnt
+	BIG,REGなどのカウンタ △ count[]
+	ボーナス履歴 △ bonus_data[{"ゲーム数":int,"count_type":int,"coin":int}]
 	グラフ情報 ->初回のみ全データ送信　あとは差分のみ
 
 	パチスロのしくみ
@@ -133,4 +212,32 @@ serialPort.list(function(e, p) {
 	iPhoneの写真１枚 2MByte
 	2M = 2048Kb
 	3000000Gで写真１枚分
- */
+
+{
+	"incoin":100,
+	"outcoin":200,
+	"allplay_cnt":300,
+	"play_cnt":5,
+	"count":[
+	{
+		"name":"BIG",
+		"count":5
+	},
+	{
+		"name":"REG",
+		"count":3
+	}
+	],
+	"bonus_data":[
+	{"play":3,
+		"count_type":0,
+		"coin":15
+	},
+	{"play":15,
+		"count_type":1,
+		"coin":150
+	}
+	],
+	"play_data":"44GC44GE44GG44GI44GK"
+}
+	*/

@@ -1,0 +1,27 @@
+{
+  "incoin":100,
+  "outcoin":200,
+  "allplay_cnt":300,
+  "play_cnt":5,
+  "count":[
+    {
+      "name":"BIG",
+      "count":5
+    },
+    {
+      "name":"REG",
+      "count":3
+    }
+  ],
+  "bonus_data":[
+    {"play":3,
+      "count_type":0,
+      "coin":15
+    },
+    {"play":15,
+      "count_type":1,
+      "coin":150
+    }
+  ],
+  "play_data":"44GC44GE44GG44GI44GK"
+}

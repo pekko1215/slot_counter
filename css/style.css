@@ -3,27 +3,44 @@
 }
 
 html {
-  min-height: 100%; /* html要素をウィンドウサイズにフィット */
-
-  background:url('/img/select_back.jpg') no-repeat center; /*背景をhtml要素に表示*/
-
-  position: relative;
-  background-size:cover; /* 背景画像をhtml要素にフィット */
+    min-height: 100%;
+    /* html要素をウィンドウサイズにフィット */
+    background: url('/img/select_back.jpg') no-repeat center;
+    /*背景をhtml要素に表示*/
+    position: relative;
+    background-size: cover;
+    /* 背景画像をhtml要素にフィット */
 }
 
-.selector{
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  border-radius: 5px;
-  margin: auto;
-  width: 80%;
-  height: 40%;
-  background:#001b03;
-  opacity: 0.8;
+.selector {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    border-radius: 5px;
+    margin: auto;
+    width: 80%;
+    height: 80%;
+    background: #001b03;
+    opacity: 0.8;
 }
-h2{
-  color: #ffffff;
+
+h2 {
+    color: #ffffff;
+}
+
+label {
+    color: white;
+    background-color: red;
+    padding: 6px;
+    border-radius: 7px;
+}
+
+div#result {
+    top: 50px;
+    color: white;
+    text-align: center;
+    margin-top: 10%;
+    background-color: #191919;
 }
