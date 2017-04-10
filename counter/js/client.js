@@ -15,27 +15,34 @@ $(function() {
         if (data.PIN == 1) {
             outcoin++;
         }
-        var coin = outcoin - incoin;
-        var info = $("#info")
-        info.html("差枚数：" + coin + "<br>");
-        info.append("IN枚数：" + incoin + "<br>");
-        info.append("OUT枚数：" + outcoin + "<br>");
-        info.append("機械割：" + (outcoin / incoin) + "%" + "<br>")
+        outImgDocuments($('#play_cnt'),coin,4)
     })
 })
 
-function outImgDocuments(param,len){
+function outImgDocuments(elem,param,len){
 	var nums = param.toString()
-	if(arguments.length !== 2){
+	if(arguments.length !== 3){
 		len = nums.length;
 	}
+	for(var i=nums.length;i<len;i++){
+		nums = "_"+nums
+	}
 	var docs = [];
+	var oldElm = elem.find("img");
+	console.log(oldElm)
 	for(var i=0;i<nums.length;i++){
 		var n = nums.slice(i,i+1);
-		console.log(n)
-		var e = document.createElement("img");
-		e.src="/img/seg/"+n+".gif"
+		if(n=="_")
+			n = "none"
+		var src = "/img/seg/"+n+".gif"
+		if(i in oldElm){
+			oldElm[i].src = src;
+		}else{
+			var e = document.createElement("img");
+			e.src = src;
+			elem.append(e)
+		}
 		docs.push(e)
 	}
-	console.log(docs)
+	return docs;
 }

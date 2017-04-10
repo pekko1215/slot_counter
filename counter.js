@@ -13,10 +13,9 @@ var qs = require('querystring');
 var config = jsyaml.load(fs.readFileSync('./config/default.yaml')).config;
 var dataload = false;
 
-
+var count_data = {}
 
 clientserver.on('request', function(req, res) {
-
     if (req.method == "GET") {
         if (req.url == "/") {
             if (dataload == false) {
@@ -40,7 +39,6 @@ clientserver.on('request', function(req, res) {
             if (dataload)
                 req.url = "/counter" + req.url
             var f = req.url.split('.');
-            console.log(f[f.length - 1])
             switch (f[f.length - 1]) {
                 case 'htm':
                     req.url += "l"
@@ -81,7 +79,6 @@ clientserver.on('request', function(req, res) {
                     })
                     break
                 case "gif":
-						console.log(req.url)
                     fs.readFile("." + req.url, 'binary', function(err, data) {
                         res.writeHead(200, {
                             'Content-Type': 'image/gif'
@@ -99,6 +96,7 @@ clientserver.on('request', function(req, res) {
         });
         req.on('end', function() {
             var POST = qs.parse(body);
+            count_data = POST;
             dataload = true;
             res.writeHead(200, {
                 'Content-Type': 'text/plain'
@@ -114,6 +112,24 @@ console.log("server listening...");
 
 var io = socketio.listen(clientserver);
 
+function countup(pin){
+	switch(pin){
+		case 0:
+			count_data.incoin++;
+		break
+		case 1:
+			count_data.outcoin++;
+		break
+		default:
+		console.log(count_data.pin_data);
+			for(var i=0;i<count_data.pin_data.length;i++){
+				if(count_data.pin_data[i].pin == pin){
+					count_data.count[count_data.pin_data[i].count_type]++;
+				}
+			}
+	}
+	console.log(count_data)
+}
 function sendMessage(m) {
     io.sockets.emit("server_to_client", m);
 }
@@ -150,10 +166,7 @@ serialPort.list(function(e, p) {
                     //PIN1 PIN2 はONになった時だけ信号を送信
                 for (var i = 0; i < 2; i++) {
                     if (pin & 1 << i && oldPin[i] == 0) {
-                        sendMessage({
-                            'PIN': i,
-                            'value': true
-                        })
+                        countup(i)
                         oldPin[i] = 1;
                     }
                     if ((pin & 1 << i) == 0x00) {
@@ -164,16 +177,14 @@ serialPort.list(function(e, p) {
                 for (var i = 2; i < 8; i++) {
                     if ((pin & 1 << i) != (oldPin[i] << i)) {
                         oldPin[i] = (pin & 1 << i) >> i;
-                        sendMessage({
-                            'PIN': i,
-                            'value': oldPin[i]
-                        })
+                        countup(i)
                     }
                 }
             })
         }
     })
 })
+
 
 /*
 	カウンターに必要なもの(カウントすべき情報)
@@ -238,6 +249,10 @@ serialPort.list(function(e, p) {
 		"coin":150
 	}
 	],
-	"play_data":"44GC44GE44GG44GI44GK"
+	"play_data":"44GC44GE44GG44GI44GK",
+	"pin_data":{
+		"2":0,
+		"3",1
+	}
 }
 	*/
