@@ -8,7 +8,7 @@ var jsyaml = require('js-yaml');
 
 var socketio = require('socket.io');
 
-var qs = require('querystring');
+var qs = require('qs');
 
 var readlineSync = require('readline-sync');
 
@@ -132,6 +132,7 @@ clientserver.on('request', function(req, res) {
                                         break
                                 case "gif":
                                         fs.readFile("." + req.url, 'binary', function(err, data) {
+                                                console.log(req.url)
                                                 res.writeHead(200, {
                                                         'Content-Type': 'image/gif'
                                                 });
@@ -147,6 +148,7 @@ clientserver.on('request', function(req, res) {
                         body += data;
                 });
                 req.on('end', function() {
+                    console.log(qs.parse(body))
                         var POST = qs.parse(body);
                         count_data = POST;
                         dataload = true;
@@ -158,15 +160,19 @@ clientserver.on('request', function(req, res) {
                 });
         }
 });
-clientserver.listen(config.clientport)
+
+require('dns').lookup(require('os').hostname(), function (err, add, fam) {
+  console.log("server:"+add+":"+config.clientport)
+  clientserver.listen({port:add,port:config.clientport})
+})
+
 
 var io = socketio.listen(clientserver)
 
 
 io.sockets.on('connection',function(socket){
-    console.log(socket)
     socket.on('init',function(m){
-        console.log(m)
+        socket.emit("reserve_initdata",JSON.stringify(count_data))
     })
 })
 
@@ -185,7 +191,7 @@ function countup(pin) {
                         }))
                         break
                 default:
-                        console.log(count_data.pin_data);
+                        // console.log(count_data.pin_data);
                         for (var i = 0; i < count_data.pin_data.length; i++) {
                                 if (count_data.pin_data[i].pin == pin) {
                                         count_data.count[count_data.pin_data[i].count_type]++;
@@ -193,6 +199,7 @@ function countup(pin) {
                                 }
                         }
         }
+        // console.log(count_data)
 }
 
 function sendMessage(m) {
