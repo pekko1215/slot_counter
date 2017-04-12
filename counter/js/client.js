@@ -1,6 +1,7 @@
 $(function() {
     var incoin = 0;
     var outcoin = 0;
+    var coin = 0;
     var socket = io.connect()
     $('#send').on('click', function(e) {
         socket.emit("client_to_server", "iPhoneからのPUSH")
@@ -8,14 +9,18 @@ $(function() {
     $('#load').on('click', function(e) {
         window.open('fileselect.htm', 'subwin', 'width=300,height=600');
     });
-    socket.on("server_to_client", function(data) {
-        if (data.PIN == 0) {
-            incoin++;
-        }
-        if (data.PIN == 1) {
-            outcoin++;
-        }
-        outImgDocuments($('#play_cnt'),coin,4)
+    socket.on("server_to_client", function(dataj) {
+	var data = JSON.parse(dataj)
+	if('incoin' in data){
+		incoin = data.incoin;
+	}
+	if('outcoin' in data){
+		outcoin = data.outcoin;
+	}
+	if('incoin' in data || 'outcoin' in data){
+	        coin = outcoin - incoin
+	        outImgDocuments($('#play_cnt'),coin,4)
+	}
     })
 })
 

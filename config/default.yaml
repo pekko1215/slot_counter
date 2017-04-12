@@ -1,3 +1,2 @@
 config:
   clientport: 55555
-  sendport: 55556
