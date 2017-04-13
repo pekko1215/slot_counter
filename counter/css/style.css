@@ -4,3 +4,11 @@ img {
 body{
 	background-color: black
 }
+h2 {
+	font-size: 19px;
+	color: green
+
+}
+td{
+	text-align: right;
+}

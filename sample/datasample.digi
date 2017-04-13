@@ -11,6 +11,10 @@
     {
       "name": "REG",
       "count": 3
+    },
+    {
+      "name":"CT",
+      "count":0
     }
   ],
   "bonus_data": [
@@ -33,7 +37,11 @@
     },
     {
       "pin": 3,
-      "count_type": 2
+      "count_type": 0
+    },
+    {
+      "pin":6,
+      "count_type":2
     }
   ]
 }

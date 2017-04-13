@@ -22,7 +22,10 @@ var debug_mode = false;
 var excom = null;
 var count_data = {}
 
+var debug_tool_index = 0;
 function _debugger() {
+        if(!debug_mode)
+            return;
         process.stdin.setRawMode(true)
         process.stdin.on('keypress', function(c, k) {
                 if (!k) {
@@ -32,14 +35,25 @@ function _debugger() {
                 if (key == 'c' && k.ctrl) {
                         process.stdin.pause();
                         process.exit();
+                        return
                 }
                 if (key === 'z') {
-                        countup(0)
-                        console.log("count:0")
+                        debug_tool_index = (8 + debug_tool_index - 1)%8
+                        process.stdout.clearLine();
+                        process.stdout.cursorTo(0);
+                        process.stdout.write("Pin:"+debug_tool_index)
+                }
+                if (key === 'c') {
+                        debug_tool_index = (8 + debug_tool_index + 1)%8
+                        process.stdout.clearLine();
+                        process.stdout.cursorTo(0);
+                        process.stdout.write("Pin:"+debug_tool_index)
                 }
                 if (key === 'x') {
-                        console.log("count:1")
-                        countup(1)
+                        process.stdout.clearLine();
+                        process.stdout.cursorTo(0);
+                        console.log("Send PIN:"+debug_tool_index)
+                        countup(debug_tool_index)
                 }
                 if (key === 'q') {
                         debug_mode = false
@@ -132,7 +146,7 @@ clientserver.on('request', function(req, res) {
                                         break
                                 case "gif":
                                         fs.readFile("." + req.url, 'binary', function(err, data) {
-                                                console.log(req.url)
+                                                // console.log(req.url)
                                                 res.writeHead(200, {
                                                         'Content-Type': 'image/gif'
                                                 });
@@ -148,7 +162,7 @@ clientserver.on('request', function(req, res) {
                         body += data;
                 });
                 req.on('end', function() {
-                    console.log(qs.parse(body))
+                        console.log(qs.parse(body))
                         var POST = qs.parse(body);
                         count_data = POST;
                         dataload = true;
@@ -161,19 +175,19 @@ clientserver.on('request', function(req, res) {
         }
 });
 
-require('dns').lookup(require('os').hostname(), function (err, add, fam) {
-  console.log("server:"+add+":"+config.clientport)
-  clientserver.listen({port:add,port:config.clientport})
+require('dns').lookup(require('os').hostname(), function(err, add, fam) {
+        console.log("server:" + add + ":" + config.clientport)
+        clientserver.listen({ port: add, port: config.clientport })
 })
 
 
 var io = socketio.listen(clientserver)
 
 
-io.sockets.on('connection',function(socket){
-    socket.on('init',function(m){
-        socket.emit("reserve_initdata",JSON.stringify(count_data))
-    })
+io.sockets.on('connection', function(socket) {
+        socket.on('init', function(m) {
+                socket.emit("reserve_initdata", JSON.stringify(count_data))
+        })
 })
 
 function countup(pin) {
@@ -194,8 +208,9 @@ function countup(pin) {
                         // console.log(count_data.pin_data);
                         for (var i = 0; i < count_data.pin_data.length; i++) {
                                 if (count_data.pin_data[i].pin == pin) {
-                                        count_data.count[count_data.pin_data[i].count_type]++;
-                                        sendMessage(JSON.stringify({ 'index': i, 'count': count_data.count[count_data.pin_data[i].count_type] }))
+                                        var count_type = count_data.pin_data[i].count_type;
+                                        count_data.count[count_type].count++;
+                                        sendMessage(JSON.stringify({ 'type':"countup","count_type":count_type,'count': count_data.count[count_type].count }))
                                 }
                         }
         }
@@ -227,8 +242,7 @@ serialPort.list(function(e, p) {
         })
         var tmp = 0;
         var count = 0;
-
-        var oldPin = [0, 0, 0, 0, 0, 0, 0, 0];
+ var oldPin = [0, 0, 0, 0, 0, 0, 0, 0];
         sp.on("open", function(e) {
                 if (e) {
                         console.log("failed to open:" + e)

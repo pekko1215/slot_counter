@@ -1,21 +1,59 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-	<title>スロットカウンター</title>
-	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-	<script src="/socket.io/socket.io.js"></script>
-	<script type="text/javascript" src="js/client.js"></script>
-	<link rel="stylesheet" type="text/css" href="css/style.css">
+    <title>スロットカウンター</title>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript" src="js/client.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/style.css">
 </head>
+
 <body>
-	<div id="play_cnt"></div><br>
-	<div id="incoin"></div><br>
-	<div id="outcoin"></div><br>
-	<div id="allplay_cnt"><div><br>
-	<div id="coin"><div><br>
-	<div id="COUNT" index="0"></div><br>
-	<div id="COUNT" index="1"></div><br>
-	<div id="COUNT" index="2"></div><br>
-	<div id="COUNT" index="3"></div><br>
+    <table>
+        <tr>
+            <td>
+                <h2>総ゲーム数</h2>
+                <div id="allplay_cnt"></div>
+            </td>
+            <td>
+                <h2>ゲーム数</h2>
+                <div id="play_cnt"></div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <h2>差枚数</h2>
+                <div id="coin"></div>
+            </td>
+            <td>
+                <h2>IN枚数</h2>
+                <div id="incoin"></div>
+            </td>
+            <td>
+                <h2>OUT枚数</h2>
+                <div id="outcoin"></div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <h2>カウント1</h2>
+                <div name="COUNT" index="0"></div>
+            </td>
+            <td>
+                <h2>カウント2</h2>
+                <div name="COUNT" index="1"></div>
+            </td>
+            <td>
+                <h2>カウント3</h2>
+                <div name="COUNT" index="2"></div>
+            </td>
+            <td>
+                <h2>カウント4</h2>
+                <div name="COUNT" index="3"></div>
+            </td>
+        </tr>
+    </table>
 </body>
+
 </html>
