@@ -6,7 +6,8 @@
   "count": [
     {
       "name": "BIG",
-      "count": 5
+      "count": 5,
+      "counting":true
     },
     {
       "name": "REG",
@@ -33,15 +34,19 @@
   "pin_data": [
     {
       "pin": 2,
-      "count_type": 1
+      "count_type": 1,
+      "playcount":false,
+      "ignore":[0]
     },
     {
       "pin": 3,
-      "count_type": 0
+      "count_type": 0,
+      "playcount":false
     },
     {
-      "pin":6,
-      "count_type":2
+      "pin":5,
+      "count_type":2,
+      "playcount":true
     }
   ]
 }

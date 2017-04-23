@@ -23,9 +23,14 @@ var excom = null;
 var count_data = {}
 
 var debug_tool_index = 0;
+
+var oldtime = 0;
+var oldPin = [0, 0, 0, 0, 0, 0, 0, 0];
+
+
 function _debugger() {
-        if(!debug_mode)
-            return;
+        if (!debug_mode)
+                return;
         process.stdin.setRawMode(true)
         process.stdin.on('keypress', function(c, k) {
                 if (!k) {
@@ -38,21 +43,21 @@ function _debugger() {
                         return
                 }
                 if (key === 'z') {
-                        debug_tool_index = (8 + debug_tool_index - 1)%8
+                        debug_tool_index = (8 + debug_tool_index - 1) % 8
                         process.stdout.clearLine();
                         process.stdout.cursorTo(0);
-                        process.stdout.write("Pin:"+debug_tool_index)
+                        process.stdout.write("Pin:" + debug_tool_index)
                 }
                 if (key === 'c') {
-                        debug_tool_index = (8 + debug_tool_index + 1)%8
+                        debug_tool_index = (8 + debug_tool_index + 1) % 8
                         process.stdout.clearLine();
                         process.stdout.cursorTo(0);
-                        process.stdout.write("Pin:"+debug_tool_index)
+                        process.stdout.write("Pin:" + debug_tool_index)
                 }
                 if (key === 'x') {
                         process.stdout.clearLine();
                         process.stdout.cursorTo(0);
-                        console.log("Send PIN:"+debug_tool_index)
+                        console.log("Send PIN:" + debug_tool_index)
                         countup(debug_tool_index)
                 }
                 if (key === 'q') {
@@ -66,18 +71,20 @@ for (var i = 2; i < process.argv.length; i++) {
         switch (process.argv[i]) {
                 case "debug":
                         debug_mode = true;
+                        _debugger();
                         break;
                 case "-com":
                         i++;
                         excom = process.argv[i];
+                        console.log("excom:" + excom)
                         break;
         }
-        if (debug_mode = true && excom == null)
-                excom = "COM11"
-        console.log("Debug mode : true")
 }
 
-_debugger();
+if (debug_mode = true && excom == null) {
+        excom = "COM11"
+        console.log("Debug mode : true excom:" + excom)
+}
 process.stdin.resume()
 
 
@@ -166,6 +173,13 @@ clientserver.on('request', function(req, res) {
                         var POST = qs.parse(body);
                         count_data = POST;
                         dataload = true;
+                        console.log(count_data.count[0])
+                        for (var i in count_data.count) {
+                                console.log(count_data.count.counting)
+                                if (!("counting" in count_data.count[i])) {
+                                        count_data.count[i].counting = false;
+                                }
+                        }
                         res.writeHead(200, {
                                 'Content-Type': 'text/plain'
                         });
@@ -204,13 +218,40 @@ function countup(pin) {
                                 'outcoin': count_data.outcoin
                         }))
                         break
+                case 'play':
+                        var countable = true;
+                        for (var i in count_data.pin_data) {
+                                console.log(count_data.pin_data[i])
+                                if ("playcount" in count_data.pin_data[i]) {
+                                        if (count_data.pin_data[i].playcount && oldPin[count_data.pin_data[i].pin] == 1) {
+                                                countable = false;
+                                        }
+                                }
+                        }
+                        if (countable) {
+                                count_data.play_cnt++;
+                                count_data.allplay_cnt++;
+                                sendMessage(JSON.stringify({ 'type': "playcount", "play_cnt": count_data.play_cnt, 'allplay_cnt': count_data.allplay_cnt }))
+                        }
+                        break
                 default:
-                        // console.log(count_data.pin_data);
+                        for (var i in oldPin) {
+                                if (i != 1)
+                                        continue;
+                                for (var pi in count_data.pin_data) {
+                                        if ('ignore' in count_data.pin_data[pi]) {
+                                                if (count_data.pin_data[pi].ignore.indexOf(i) != -1) {
+                                                        return;
+                                                }
+                                        }
+                                }
+                        }
+                        console.log(count_data.pin_data);
                         for (var i = 0; i < count_data.pin_data.length; i++) {
                                 if (count_data.pin_data[i].pin == pin) {
                                         var count_type = count_data.pin_data[i].count_type;
                                         count_data.count[count_type].count++;
-                                        sendMessage(JSON.stringify({ 'type':"countup","count_type":count_type,'count': count_data.count[count_type].count }))
+                                        sendMessage(JSON.stringify({ 'type': "countup", "count_type": count_type, 'count': count_data.count[count_type].count }))
                                 }
                         }
         }
@@ -218,18 +259,28 @@ function countup(pin) {
 }
 
 function sendMessage(m) {
-        io.sockets.emit("server_to_client", m);
+        var tm = JSON.parse(m);
+        tm.counting = [];
+        console.log(count_data.count)
+        for (var i in count_data.count) {
+                if (count_data.count[i].counting) {
+                        tm.counting.push(i)
+                }
+        }
+        io.sockets.emit("server_to_client", JSON.stringify(tm));
 }
 //シリアル接続
 serialPort.list(function(e, p) {
+        if (debug_mode) {
+                console.log("dwad")
+                return
+        }
         var comName = null;
         console.log(p)
         p.forEach(function(r) {
                 if (r.manufacturer == "FTDI")
                         comName = r.comName;
         })
-        if (debug_mode)
-                comName = excom
         if (comName === null) {
                 console.log("接続に失敗しました");
                 return false;
@@ -242,7 +293,6 @@ serialPort.list(function(e, p) {
         })
         var tmp = 0;
         var count = 0;
- var oldPin = [0, 0, 0, 0, 0, 0, 0, 0];
         sp.on("open", function(e) {
                 if (e) {
                         console.log("failed to open:" + e)
@@ -250,7 +300,7 @@ serialPort.list(function(e, p) {
                         console.log("open")
                         sp.on("data", function(data) {
                                 var pin = 0xff ^ data[0]
-                                console.log(pin)
+                                        // console.log(pin)
                                 if (!dataload) {
                                         return
                                 }
@@ -259,6 +309,13 @@ serialPort.list(function(e, p) {
                                         if (pin & 1 << i && oldPin[i] == 0) {
                                                 countup(i)
                                                 oldPin[i] = 1;
+                                                if (i == 0) {
+                                                        var nowDate = new Date()
+                                                        if ((nowDate.getTime() - oldtime) / 1000 > 3) {
+                                                                oldtime = nowDate.getTime();
+                                                                countup("play");
+                                                        }
+                                                }
                                         }
                                         if ((pin & 1 << i) == 0x00) {
                                                 oldPin[i] = 0;

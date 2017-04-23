@@ -52,6 +52,12 @@ function setCountData(newdata) {
 		var target = $("div[name=COUNT][index="+newdata.count_type+"]");
 		outImgDocuments(target,newdata.count,5);
 	}
+	if(newdata.type === "playcount"){
+		data.play_cnt = newdata.play_cnt;
+		data.allplay_cnt = newdata.allplay_cnt;
+		outImgDocuments($('#play_cnt'), data.play_cnt, 5)
+		outImgDocuments($('#allplay_cnt'), data.allplay_cnt, 5)
+	}
         }
         if ('incoin' in newdata || 'outcoin' in newdata) {
                 coin = data.outcoin - data.incoin
